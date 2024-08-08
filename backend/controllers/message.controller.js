@@ -1,5 +1,6 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import { getReceiverSockerId, io } from "../socket/socket.js";
 
 export const sendMessage = async (req, res) => {
   try {
@@ -37,10 +38,16 @@ export const sendMessage = async (req, res) => {
     // await conversation.save();
     // await newMessage.save();
 
-    //SOCKET.IO HERE
-
     //We can run promises in parallel
     await Promise.all([conversation.save(), newMessage.save()]);
+
+    //SOCKET.IO HERE
+    const receiverSocketId = getReceiverSockerId(receiverId);
+
+    if (receiverSocketId) {
+      //io.to is used to send to specific client
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
 
     res.status(201).json(newMessage);
   } catch (error) {
@@ -63,7 +70,7 @@ export const getMessages = async (req, res) => {
     }).populate("messages"); // This populate function will give out the actual message Object itself, not just the reference.
 
     if (!conversation) {
-      return res.status(200).json({});
+      return res.status(200).json([]);
     }
 
     const messages = conversation.messages;
