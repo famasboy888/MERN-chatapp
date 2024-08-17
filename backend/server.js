@@ -20,27 +20,25 @@ const __dirname = path.resolve();
 
 console.log("this is the dir", __dirname);
 
-function displayFiles(dir) {
-  fs.readdir(dir, { withFileTypes: true }, (err, files) => {
+function displayFolders(dir) {
+  fs.readdir(dir, { withFileTypes: true }, (err, items) => {
     if (err) {
       console.error("Could not list the directory.", err);
       process.exit(1);
     }
 
-    files.forEach((file) => {
-      const fullPath = path.join(dir, file.name);
+    items.forEach((item) => {
+      const fullPath = path.join(dir, item.name);
 
-      if (file.isDirectory()) {
+      if (item.isDirectory() && item.name !== "node_modules") {
         console.log("Directory:", fullPath);
-        displayFiles(fullPath); // Recursively list files in subdirectory
-      } else {
-        console.log("File:", fullPath);
+        displayFolders(fullPath); // Recursively list subdirectories
       }
     });
   });
 }
 
-displayFiles(__dirname);
+displayFolders(path.join(__dirname, "frontend"));
 
 // //Middlewares
 
